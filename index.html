@@ -3,35 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Firebase Példa</title>
+    <title>CsokiBet | Email visszaigazolás</title>
     <style>
         body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            font-family: Arial, sans-serif;
+            background-color: #f8f8f8;
+            color: #333;
+            padding: 0;
             margin: 0;
-            background-color: #f0f0f0; /* Világos háttér */
-            font-family: 'Arial', sans-serif; /* Modern betűtípus */
         }
-
-        #output {
-            background-color: #4caf50; /* Zöld háttér */
-            color: white; /* Fehér szöveg */
-            padding: 20px;
-            border-radius: 5px;
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        }
+        .header {
+            background-color: #4CAF50;
             text-align: center;
-            font-size: 24px; /* Nagyobb szöveg */
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Árnyék */
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
         }
-
-        h1 {
-            margin: 0; /* Középre igazítás */
-            font-size: 1.5em; /* H1 méret */
-            line-height: 1.2; /* H1 vonalvezetés */
+        .content {
+            padding: 20px;
+            text-align: center;
+        }
+        .content img {
+            width: 80px;
+        }
+        .footer {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+        }
+        .footer p {
+            margin: 0;
+            font-size: 12px;
+        }
+        .error-message {
+            color: red;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .success-message {
+            font-size: 20px;
+            color: #4CAF50;
         }
     </style>
-    <script type="module">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://i.imgur.com/4ooGYni.png" alt="CsokiBet Logo" width="160px">
+        </div>
+        <div class="content" id="content">
+            <!-- Content will be dynamically updated here -->
+        </div>
+        <div class="footer">
+            <p>&copy; 2024 Csokibet. Minden jog fenntartva.</p>
+        </div>
+    </div>
+
+    <script>
+        // Firebase konfiguráció
         const firebaseConfig = {
             apiKey: "AIzaSyBXxbFR3nwUFni-dBOB4dg7i3C-Z0SNgcw",
             authDomain: "csokibetwpf.firebaseapp.com",
@@ -43,40 +84,57 @@
             measurementId: "G-JN7VKHTJ6V"
         };
 
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+        // Firebase inicializálása
+        const app = firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
 
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
-
+        // Query string lekérése
         const params = new URLSearchParams(window.location.search);
         const emailParam = params.get('email');
 
-        console.log("Email paraméter:", emailParam); // Ellenőrzés
+        const contentDiv = document.getElementById('content');
 
         if (emailParam) {
+            // Az email cím módosítása, hogy kompatibilis legyen a Firebase kulcsnévvel (pl. pont helyett _)
             const emailKey = emailParam.replace(/\./g, "_");
-            const userRef = ref(database, 'users/' + emailKey);
 
-            get(userRef).then((snapshot) => {
+            // Firebase referencia az adott felhasználóhoz
+            const userRef = database.ref('users/' + emailKey);
+
+            // Ellenőrzés, hogy létezik-e a felhasználó
+            userRef.get().then((snapshot) => {
                 if (snapshot.exists()) {
-                    update(userRef, { isActive: true }).then(() => {
-                        document.getElementById('output').innerHTML = `<h1>Az email cím hitelesítése sikeres volt!</h1>Mostmár bejelentkezhetsz az új profiloddal.`;
+                    // isActive módosítása true-ra
+                    userRef.update({ isActive: true }).then(() => {
+                        contentDiv.innerHTML = `
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Eo_circle_green_checkmark.svg/1200px-Eo_circle_green_checkmark.svg.png" alt="Success" width="80px">
+                            <h1 class="success-message">Sikeresen igazoltad az email címedet!</h1>
+                            <p>Mostmár visszatérhetsz az alkalmazásba, hogy bejelentkezhess új fiókoddal.</p>
+                        `;
                     }).catch((error) => {
-                        document.getElementById('output').textContent = `Hiba történt a frissítés során: ${error}`;
+                        contentDiv.innerHTML = `
+                            <h1 class="error-message">Valami hiba lépett fel</h1>
+                            <p>Kérlek ellenőrizd a linket!</p>
+                        `;
                     });
                 } else {
-                    document.getElementById('output').textContent = `A felhasználó nem található: ${emailParam}`;
+                    contentDiv.innerHTML = `
+                        <h1 class="error-message">Valami hiba lépett fel</h1>
+                        <p>Kérlek ellenőrizd a linket!</p>
+                    `;
                 }
             }).catch((error) => {
-                document.getElementById('output').textContent = `Hiba történt a lekérés során: ${error}`;
+                contentDiv.innerHTML = `
+                    <h1 class="error-message">Valami hiba lépett fel</h1>
+                    <p>Kérlek ellenőrizd a linket!</p>
+                `;
             });
         } else {
-            document.getElementById('output').innerHTML = `<h1>Hibás link</h1>Kérlek ellenőrizd a link helyességét!`;
+            contentDiv.innerHTML = `
+                <h1 class="error-message">Valami hiba lépett fel</h1>
+                <p>Kérlek ellenőrizd a linket!</p>
+            `;
         }
     </script>
-</head>
-<body>
-    <div id="output"></div>
 </body>
 </html>
