@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Példa</title>
+    <!-- Firebase SDK hozzáadása -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+</head>
+<body>
+    <h1 id="output"></h1>
+
+    <script>
+        // Firebase konfiguráció (a saját projektedből)
+        const firebaseConfig = {
+  apiKey: "AIzaSyBXxbFR3nwUFni-dBOB4dg7i3C-Z0SNgcw",
+  authDomain: "csokibetwpf.firebaseapp.com",
+  databaseURL: "https://csokibetwpf-default-rtdb.firebaseio.com",
+  projectId: "csokibetwpf",
+  storageBucket: "csokibetwpf.appspot.com",
+  messagingSenderId: "514397772782",
+  appId: "1:514397772782:web:b54efbb2b690e466cb8cff",
+  measurementId: "G-JN7VKHTJ6V"
+};
+
+        // Firebase inicializálása
+        const app = firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Query string lekérése
+        const params = new URLSearchParams(window.location.search);
+        const emailParam = params.get('email');
+
+        if (emailParam) {
+            // Az email cím módosítása, hogy kompatibilis legyen a Firebase kulcsnévvel (pl. pont helyett _)
+            const emailKey = emailParam.replace(/\./g, "_");
+
+            // Firebase referencia az adott felhasználóhoz
+            const userRef = database.ref('users/' + emailKey);
+
+            // Ellenőrzés, hogy létezik-e a felhasználó
+            userRef.get().then((snapshot) => {
+                if (snapshot.exists()) {
+                    // isActive módosítása true-ra
+                    userRef.update({ isActive: true }).then(() => {
+                        document.getElementById('output').textContent = `Az ${emailParam} felhasználó isActive mezője true-ra módosítva.`;
+                    }).catch((error) => {
+                        document.getElementById('output').textContent = `Hiba történt a frissítés során: ${error}`;
+                    });
+                } else {
+                    document.getElementById('output').textContent = `A felhasználó nem található: ${emailParam}`;
+                }
+            }).catch((error) => {
+                document.getElementById('output').textContent = `Hiba történt a lekérés során: ${error}`;
+            });
+        } else {
+            document.getElementById('output').textContent = 'Nincs email cím megadva!';
+        }
+    </script>
+</body>
+</html>
