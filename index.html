@@ -4,47 +4,64 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Firebase Példa</title>
-    <!-- Firebase SDK hozzáadása -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
-</head>
-<body>
-    <h1 id="output"></h1>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0; /* Világos háttér */
+            font-family: 'Arial', sans-serif; /* Modern betűtípus */
+        }
 
-    <script>
-        // Firebase konfiguráció (a saját projektedből)
+        #output {
+            background-color: #4caf50; /* Zöld háttér */
+            color: white; /* Fehér szöveg */
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 24px; /* Nagyobb szöveg */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Árnyék */
+        }
+
+        h1 {
+            margin: 0; /* Középre igazítás */
+            font-size: 1.5em; /* H1 méret */
+            line-height: 1.2; /* H1 vonalvezetés */
+        }
+    </style>
+    <script type="module">
         const firebaseConfig = {
-  apiKey: "AIzaSyBXxbFR3nwUFni-dBOB4dg7i3C-Z0SNgcw",
-  authDomain: "csokibetwpf.firebaseapp.com",
-  databaseURL: "https://csokibetwpf-default-rtdb.firebaseio.com",
-  projectId: "csokibetwpf",
-  storageBucket: "csokibetwpf.appspot.com",
-  messagingSenderId: "514397772782",
-  appId: "1:514397772782:web:b54efbb2b690e466cb8cff",
-  measurementId: "G-JN7VKHTJ6V"
-};
+            apiKey: "AIzaSyBXxbFR3nwUFni-dBOB4dg7i3C-Z0SNgcw",
+            authDomain: "csokibetwpf.firebaseapp.com",
+            databaseURL: "https://csokibetwpf-default-rtdb.firebaseio.com",
+            projectId: "csokibetwpf",
+            storageBucket: "csokibetwpf.appspot.com",
+            messagingSenderId: "514397772782",
+            appId: "1:514397772782:web:b54efbb2b690e466cb8cff",
+            measurementId: "G-JN7VKHTJ6V"
+        };
 
-        // Firebase inicializálása
-        const app = firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-        // Query string lekérése
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
         const params = new URLSearchParams(window.location.search);
         const emailParam = params.get('email');
 
+        console.log("Email paraméter:", emailParam); // Ellenőrzés
+
         if (emailParam) {
-            // Az email cím módosítása, hogy kompatibilis legyen a Firebase kulcsnévvel (pl. pont helyett _)
             const emailKey = emailParam.replace(/\./g, "_");
+            const userRef = ref(database, 'users/' + emailKey);
 
-            // Firebase referencia az adott felhasználóhoz
-            const userRef = database.ref('users/' + emailKey);
-
-            // Ellenőrzés, hogy létezik-e a felhasználó
-            userRef.get().then((snapshot) => {
+            get(userRef).then((snapshot) => {
                 if (snapshot.exists()) {
-                    // isActive módosítása true-ra
-                    userRef.update({ isActive: true }).then(() => {
-                        document.getElementById('output').textContent = `Az ${emailParam} felhasználó isActive mezője true-ra módosítva.`;
+                    update(userRef, { isActive: true }).then(() => {
+                        document.getElementById('output').innerHTML = `<h1>Az email cím hitelesítése sikeres volt!</h1>Mostmár bejelentkezhetsz az új profiloddal.`;
                     }).catch((error) => {
                         document.getElementById('output').textContent = `Hiba történt a frissítés során: ${error}`;
                     });
@@ -55,8 +72,11 @@
                 document.getElementById('output').textContent = `Hiba történt a lekérés során: ${error}`;
             });
         } else {
-            document.getElementById('output').textContent = 'Nincs email cím megadva!';
+            document.getElementById('output').innerHTML = `<h1>Hibás link</h1>Kérlek ellenőrizd a link helyességét!`;
         }
     </script>
+</head>
+<body>
+    <div id="output"></div>
 </body>
 </html>
