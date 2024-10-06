@@ -54,24 +54,12 @@
             color: #4CAF50;
         }
     </style>
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <img src="https://i.imgur.com/4ooGYni.png" alt="CsokiBet Logo" width="160px">
-        </div>
-        <div class="content" id="content">
-            <!-- Content will be dynamically updated here -->
-        </div>
-        <div class="footer">
-            <p>&copy; 2024 Csokibet. Minden jog fenntartva.</p>
-        </div>
-    </div>
+    <!-- Firebase SDK (using modular imports) -->
+    <script type="module">
+        // Importing Firebase components
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js';
+        import { getDatabase, ref, get, update } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js';
 
-    <script>
         // Firebase konfiguráció
         const firebaseConfig = {
             apiKey: "AIzaSyBXxbFR3nwUFni-dBOB4dg7i3C-Z0SNgcw",
@@ -85,8 +73,8 @@
         };
 
         // Firebase inicializálása
-        const app = firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
 
         // Query string lekérése
         const params = new URLSearchParams(window.location.search);
@@ -99,13 +87,13 @@
             const emailKey = emailParam.replace(/\./g, "_");
 
             // Firebase referencia az adott felhasználóhoz
-            const userRef = database.ref('users/' + emailKey);
+            const userRef = ref(database, 'users/' + emailKey);
 
             // Ellenőrzés, hogy létezik-e a felhasználó
-            userRef.get().then((snapshot) => {
+            get(userRef).then((snapshot) => {
                 if (snapshot.exists()) {
                     // isActive módosítása true-ra
-                    userRef.update({ isActive: true }).then(() => {
+                    update(userRef, { isActive: true }).then(() => {
                         contentDiv.innerHTML = `
                             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Eo_circle_green_checkmark.svg/1200px-Eo_circle_green_checkmark.svg.png" alt="Success" width="80px">
                             <h1 class="success-message">Sikeresen igazoltad az email címedet!</h1>
@@ -113,7 +101,7 @@
                         `;
                     }).catch((error) => {
                         contentDiv.innerHTML = `
-                            <h1 class="error-message">Valami hiba lépett fel</h1>
+                            <h1 class="error-message">Valami hiba lépett fel: ${error.message}</h1>
                             <p>Kérlek ellenőrizd a linket!</p>
                         `;
                     });
@@ -125,7 +113,7 @@
                 }
             }).catch((error) => {
                 contentDiv.innerHTML = `
-                    <h1 class="error-message">Valami hiba lépett fel</h1>
+                    <h1 class="error-message">Valami hiba lépett fel: ${error.message}</h1>
                     <p>Kérlek ellenőrizd a linket!</p>
                 `;
             });
@@ -136,5 +124,18 @@
             `;
         }
     </script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://i.imgur.com/4ooGYni.png" alt="CsokiBet Logo" width="160px">
+        </div>
+        <div class="content" id="content">
+            <!-- Content will be dynamically updated here -->
+        </div>
+        <div class="footer">
+            <p>&copy; 2024 Csokibet. Minden jog fenntartva.</p>
+        </div>
+    </div>
 </body>
 </html>
